@@ -1,0 +1,202 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f6f4;
+    color: #1d2a24;
+}
+
+/* Top Bar */
+.topbar {
+    background: #087f5b;
+    color: white;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.top-buttons button,
+.toolbar button,
+.add-sheet {
+    border: none;
+    background: white;
+    color: #087f5b;
+    padding: 9px 13px;
+    margin: 2px;
+    border-radius: 7px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Toolbar */
+.toolbar {
+    background: #e4eee9;
+    padding: 7px;
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+}
+
+.toolbar button {
+    background: #087f5b;
+    color: white;
+    white-space: nowrap;
+}
+
+/* Formula Bar */
+.formula-area {
+    display: flex;
+    align-items: center;
+    padding: 7px;
+    background: white;
+    border-bottom: 1px solid #ccc;
+}
+
+#cellName {
+    min-width: 45px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#formulaBar {
+    flex: 1;
+    padding: 9px;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    font-size: 15px;
+}
+
+/* Spreadsheet */
+.table-container {
+    width: 100%;
+    overflow: auto;
+    background: white;
+    height: calc(100vh - 190px);
+}
+
+table {
+    border-collapse: collapse;
+    min-width: 1100px;
+}
+
+th,
+td {
+    border: 1px solid #c8d0cc;
+    min-width: 105px;
+    height: 38px;
+    padding: 5px;
+}
+
+th {
+    background: #087f5b;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    text-align: center;
+}
+
+td {
+    background: white;
+    cursor: cell;
+}
+
+td:focus {
+    outline: 2px solid #087f5b;
+    background: #f0fff8;
+}
+
+/* Row Number */
+.row-number {
+    min-width: 45px;
+    width: 45px;
+    background: #e9efec;
+    font-weight: bold;
+    text-align: center;
+    position: sticky;
+    left: 0;
+    z-index: 4;
+}
+
+/* Sheets */
+.sheet-area {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px;
+    background: #dfe8e4;
+    overflow-x: auto;
+}
+
+.sheet-tab {
+    background: white;
+    border: 1px solid #aaa;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.sheet-tab.active {
+    background: #087f5b;
+    color: white;
+    font-weight: bold;
+}
+
+.add-sheet {
+    background: #087f5b;
+    color: white;
+    white-space: nowrap;
+}
+
+/* Message */
+#message {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: white;
+    padding: 9px 18px;
+    border-radius: 20px;
+    display: none;
+    z-index: 100;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .topbar h1 {
+        font-size: 18px;
+    }
+
+    .top-buttons button {
+        padding: 7px 9px;
+        font-size: 12px;
+    }
+
+    .toolbar button {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+
+    #formulaBar {
+        font-size: 14px;
+    }
+
+    th,
+    td {
+        min-width: 95px;
+    }
+  }
