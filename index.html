@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hisab Kitab</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+    <h1>Hisab Kitab</h1>
+    <div class="top-buttons">
+        <button onclick="newSheet()">＋ New</button>
+        <button onclick="saveData()">💾 Save</button>
+    </div>
+</header>
+
+<div class="toolbar">
+    <button onclick="addRow()">＋ Row</button>
+    <button onclick="deleteRow()">− Row</button>
+    <button onclick="addColumn()">＋ Column</button>
+    <button onclick="deleteColumn()">− Column</button>
+</div>
+
+<div class="formula-area">
+    <span id="cellName">A1</span>
+    <input
+        type="text"
+        id="formulaBar"
+        placeholder="Value या Formula लिखें, जैसे =SUM(A1:A10)"
+        oninput="formulaChanged()"
+    >
+</div>
+
+<div class="table-container">
+    <table id="spreadsheet">
+        <thead>
+            <tr id="headerRow"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<div class="sheet-area">
+    <div id="sheetTabs"></div>
+    <button class="add-sheet" onclick="addSheet()">＋ Sheet</button>
+</div>
+
+<div id="message"></div>
+
+<script src="app.js"></script>
+
+</body>
+  </html>
