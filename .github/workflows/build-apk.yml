@@ -8,10 +8,11 @@ on:
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup Java 21
@@ -24,39 +25,74 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Create Capacitor project
+      - name: Prepare web folder
+        run: |
+          mkdir -p www
+
+          find . -maxdepth 1 -type f -name "*.html" -exec cp {} www/ \;
+          find . -maxdepth 1 -type f -name "*.css" -exec cp {} www/ \;
+          find . -maxdepth 1 -type f -name "*.js" -exec cp {} www/ \;
+
+          if [ -d "assets" ]; then
+            cp -r assets www/
+          fi
+
+          if [ -d "images" ]; then
+            cp -r images www/
+          fi
+
+          if [ ! -f "www/index.html" ]; then
+            HTML_FILE=$(find www -maxdepth 1 -type f -name "*.html" | head -n 1)
+
+            if [ -n "$HTML_FILE" ]; then
+              cp "$HTML_FILE" www/index.html
+            else
+              echo "ERROR: No HTML file found"
+              exit 1
+            fi
+          fi
+
+          echo "Web files:"
+          find www -maxdepth 2 -type f
+
+      - name: Create Capacitor configuration
         run: |
           npx cap init "Hisab Kitab" "com.sujit.hisabkitab" --web-dir=www
 
-      - name: Prepare web files
+      - name: Add Android platform
         run: |
-          mkdir -p www
-          cp *.html www/ 2>/dev/null || true
-          cp *.css www/ 2>/dev/null || true
-          cp *.js www/ 2>/dev/null || true
-          cp -r assets www/ 2>/dev/null || true
-          cp -r images www/ 2>/dev/null || true
+          npx cap add android
 
-      - name: Add Android
-        run: npx cap add android
+      - name: Sync Android project
+        run: |
+          npx cap sync android
 
-      - name: Sync
-        run: npx cap sync android
+      - name: Verify Java
+        run: |
+          java -version
+          cd android
+          ./gradlew --version
 
-      - name: Build APK
+      - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Find APK
+        run: |
+          find android/app/build/outputs -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Hisab-Kitab-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
