@@ -128,57 +128,44 @@ function renderSpreadsheet() {
 
         headerRow.appendChild(th);
     }
+function calculateBalances() {
 
-    // Rows
+    const sheet = sheets[currentSheet];
+
+    let balance = 0;
+
+    // पहले सभी खाली/पुराने balance साफ करें
     for (let r = 1; r < sheet.data.length; r++) {
-
-        const tr =
-            document.createElement("tr");
-
-        const rowNumber =
-            document.createElement("td");
-
-        rowNumber.className = "row-number";
-
-        rowNumber.textContent = r;
-
-        tr.appendChild(rowNumber);
-
-        for (let c = 0; c < sheet.columns; c++) {
-
-            const td =
-                document.createElement("td");
-
-            td.contentEditable = true;
-
-            td.dataset.row = r;
-            td.dataset.col = c;
-
-            td.textContent =
-                sheet.data[r][c] || "";
-
-            td.addEventListener(
-                "focus",
-                cellSelected
-            );
-
-            td.addEventListener(
-                "input",
-                cellChanged
-            );
-
-            td.addEventListener(
-                "keydown",
-                cellKeyDown
-            );
-
-            tr.appendChild(td);
-        }
-
-        tableBody.appendChild(tr);
+        sheet.data[r][5] = "";
     }
 
-    updateSummary();
+    // केवल उस row तक balance निकालें
+    // जहाँ वास्तव में कोई हिसाब दर्ज है
+    for (let r = 1; r < sheet.data.length; r++) {
+
+        const jama =
+            parseFloat(sheet.data[r][3]) || 0;
+
+        const kharch =
+            parseFloat(sheet.data[r][4]) || 0;
+
+        const hasData =
+            sheet.data[r].some(value =>
+                String(value || "").trim() !== ""
+            );
+
+        if (!hasData) {
+            continue;
+        }
+
+        balance =
+            balance + jama - kharch;
+
+        sheet.data[r][5] =
+            balance.toFixed(2);
+    }
+
+    renderBalanceCells();
 }
 
 // ------------------------------------------
