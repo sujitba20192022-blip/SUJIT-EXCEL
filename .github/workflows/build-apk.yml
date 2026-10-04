@@ -29,7 +29,7 @@ jobs:
       - name: Install Capacitor
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
       - name: Prepare web folder
         run: |
@@ -58,36 +58,24 @@ jobs:
             fi
           fi
 
-          echo "Web files:"
-          find www -maxdepth 2 -type f
-
       - name: Create Capacitor configuration
         run: |
           npx cap init "Hisab Kitab" "com.sujit.hisabkitab" --web-dir=www
 
-      - name: Add Android platform
+      - name: Add Android
         run: |
           npx cap add android
 
-      - name: Sync Android project
+      - name: Sync Android
         run: |
           npx cap sync android
 
-      - name: Verify Java
-        run: |
-          java -version
-          cd android
-          ./gradlew --version
-
-      - name: Build Debug APK
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
+          ./gradlew clean
           ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Find APK
-        run: |
-          find android/app/build/outputs -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
