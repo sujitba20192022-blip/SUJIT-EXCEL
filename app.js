@@ -1,42 +1,56 @@
-// ===============================
-// HISAB KITAB - Spreadsheet App
-// ===============================
+// ==========================================
+// SUJIT HISAB KITAB
+// ==========================================
 
-const ROWS = 30;
-const DEFAULT_COLUMNS = 10;
+const ROWS = 50;
+const DEFAULT_COLUMNS = 6;
 
 let currentSheet = 0;
 let selectedCell = null;
 let sheets = [];
 
-// --------------------------------
-// Column names: A, B, C ... Z, AA
-// --------------------------------
+// ------------------------------------------
+// Column Name
+// ------------------------------------------
 function columnName(index) {
     let name = "";
 
     while (index >= 0) {
-        name = String.fromCharCode((index % 26) + 65) + name;
+        name =
+            String.fromCharCode((index % 26) + 65) + name;
         index = Math.floor(index / 26) - 1;
     }
 
     return name;
 }
 
-// --------------------------------
-// Create blank sheet
-// --------------------------------
+// ------------------------------------------
+// Create New Hisab
+// ------------------------------------------
 function createBlankSheet(name) {
+
     const data = [];
 
-    for (let r = 0; r < ROWS; r++) {
-        const row = [];
+    // Header row
+    data.push([
+        "तारीख",
+        "नाम",
+        "विवरण",
+        "जमा",
+        "खर्च",
+        "बाकी"
+    ]);
 
-        for (let c = 0; c < DEFAULT_COLUMNS; c++) {
-            row.push("");
-        }
+    for (let r = 1; r < ROWS; r++) {
 
-        data.push(row);
+        data.push([
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ]);
     }
 
     return {
@@ -46,442 +60,337 @@ function createBlankSheet(name) {
     };
 }
 
-// --------------------------------
-// Start App
-// --------------------------------
+// ------------------------------------------
+// Initialize
+// ------------------------------------------
 function initializeApp() {
 
-    const saved = localStorage.getItem("hisabKitabData");
+    const saved =
+        localStorage.getItem("hisabKitabData");
 
     if (saved) {
+
         try {
+
             sheets = JSON.parse(saved);
+
         } catch (error) {
+
             sheets = [
-                createBlankSheet("Sheet 1"),
-                createBlankSheet("Sheet 2"),
-                createBlankSheet("Sheet 3")
+                createBlankSheet("मुख्य हिसाब")
             ];
         }
+
     } else {
+
         sheets = [
-            createBlankSheet("Sheet 1"),
-            createBlankSheet("Sheet 2"),
-            createBlankSheet("Sheet 3")
+            createBlankSheet("मुख्य हिसाब")
         ];
     }
 
     renderSheets();
     renderSpreadsheet();
+    updateSummary();
 }
 
-// --------------------------------
+// ------------------------------------------
 // Render Spreadsheet
-// --------------------------------
+// ------------------------------------------
 function renderSpreadsheet() {
 
     const sheet = sheets[currentSheet];
 
-    const headerRow = document.getElementById("headerRow");
-    const tableBody = document.getElementById("tableBody");
+    const headerRow =
+        document.getElementById("headerRow");
+
+    const tableBody =
+        document.getElementById("tableBody");
 
     headerRow.innerHTML = "";
     tableBody.innerHTML = "";
 
-    // Empty top-left corner
+    // Corner
     const corner = document.createElement("th");
+
     corner.textContent = "#";
+
     headerRow.appendChild(corner);
 
     // Column Headers
     for (let c = 0; c < sheet.columns; c++) {
 
-        const th = document.createElement("th");
+        const th =
+            document.createElement("th");
 
-        th.textContent = columnName(c);
-
-        th.title = "Column " + columnName(c);
+        th.textContent =
+            sheet.data[0][c] ||
+            columnName(c);
 
         headerRow.appendChild(th);
     }
 
     // Rows
-    for (let r = 0; r < sheet.data.length; r++) {
+    for (let r = 1; r < sheet.data.length; r++) {
 
-        const tr = document.createElement("tr");
+        const tr =
+            document.createElement("tr");
 
-        // Row Number
-        const rowNumber = document.createElement("td");
+        const rowNumber =
+            document.createElement("td");
 
         rowNumber.className = "row-number";
 
-        rowNumber.textContent = r + 1;
+        rowNumber.textContent = r;
 
         tr.appendChild(rowNumber);
 
-        // Cells
         for (let c = 0; c < sheet.columns; c++) {
 
-            const td = document.createElement("td");
+            const td =
+                document.createElement("td");
 
             td.contentEditable = true;
 
             td.dataset.row = r;
             td.dataset.col = c;
 
-            td.textContent = sheet.data[r][c] || "";
+            td.textContent =
+                sheet.data[r][c] || "";
 
-            td.addEventListener("focus", cellSelected);
+            td.addEventListener(
+                "focus",
+                cellSelected
+            );
 
-            td.addEventListener("input", cellChanged);
+            td.addEventListener(
+                "input",
+                cellChanged
+            );
 
-            td.addEventListener("keydown", cellKeyDown);
+            td.addEventListener(
+                "keydown",
+                cellKeyDown
+            );
 
             tr.appendChild(td);
         }
 
         tableBody.appendChild(tr);
     }
+
+    updateSummary();
 }
 
-// --------------------------------
+// ------------------------------------------
 // Cell Selected
-// --------------------------------
+// ------------------------------------------
 function cellSelected(event) {
 
-    const cell = event.target;
+    selectedCell = event.target;
 
-    selectedCell = cell;
+    const row =
+        Number(selectedCell.dataset.row);
 
-    const row = Number(cell.dataset.row);
-    const col = Number(cell.dataset.col);
+    const col =
+        Number(selectedCell.dataset.col);
 
-    const name = columnName(col) + (row + 1);
-
-    document.getElementById("cellName").textContent = name;
+    document.getElementById("cellName").textContent =
+        columnName(col) + row;
 
     document.getElementById("formulaBar").value =
         sheets[currentSheet].data[row][col] || "";
 }
 
-// --------------------------------
+// ------------------------------------------
 // Cell Changed
-// --------------------------------
+// ------------------------------------------
 function cellChanged(event) {
 
     const cell = event.target;
 
-    const row = Number(cell.dataset.row);
-    const col = Number(cell.dataset.col);
+    const row =
+        Number(cell.dataset.row);
 
-    sheets[currentSheet].data[row][col] = cell.textContent;
+    const col =
+        Number(cell.dataset.col);
 
-    recalculateSheet();
+    sheets[currentSheet].data[row][col] =
+        cell.textContent.trim();
+
+    calculateBalances();
 
     saveToLocalStorage();
+
+    updateSummary();
 }
 
-// --------------------------------
-// Formula Bar Changed
-// --------------------------------
+// ------------------------------------------
+// Formula Bar
+// ------------------------------------------
 function formulaChanged() {
 
     if (!selectedCell) return;
 
-    const value = document.getElementById("formulaBar").value;
+    const value =
+        document.getElementById("formulaBar").value;
 
-    const row = Number(selectedCell.dataset.row);
-    const col = Number(selectedCell.dataset.col);
+    const row =
+        Number(selectedCell.dataset.row);
 
-    sheets[currentSheet].data[row][col] = value;
+    const col =
+        Number(selectedCell.dataset.col);
 
-    selectedCell.textContent = value;
+    sheets[currentSheet].data[row][col] =
+        value;
 
-    recalculateSheet();
+    selectedCell.textContent =
+        value;
+
+    calculateBalances();
 
     saveToLocalStorage();
+
+    updateSummary();
 }
 
-// --------------------------------
-// Keyboard Navigation
-// --------------------------------
+// ------------------------------------------
+// Keyboard
+// ------------------------------------------
 function cellKeyDown(event) {
 
     if (event.key === "Enter") {
 
         event.preventDefault();
 
-        const row = Number(event.target.dataset.row);
-        const col = Number(event.target.dataset.col);
+        const row =
+            Number(event.target.dataset.row);
+
+        const col =
+            Number(event.target.dataset.col);
 
         const nextRow = row + 1;
 
-        if (nextRow < sheets[currentSheet].data.length) {
+        const nextCell =
+            document.querySelector(
+                `td[data-row="${nextRow}"][data-col="${col}"]`
+            );
 
-            const nextCell =
-                document.querySelector(
-                    `td[data-row="${nextRow}"][data-col="${col}"]`
-                );
-
-            if (nextCell) {
-                nextCell.focus();
-            }
+        if (nextCell) {
+            nextCell.focus();
         }
     }
 }
 
-// --------------------------------
-// Formula Engine
-// --------------------------------
-function calculateFormula(formula) {
-
-    if (!formula || typeof formula !== "string") {
-        return formula;
-    }
-
-    if (!formula.startsWith("=")) {
-        return formula;
-    }
-
-    let expression = formula.substring(1).trim();
-
-    // SUM
-    expression = expression.replace(
-        /SUM\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/gi,
-        function (_, startCol, startRow, endCol, endRow) {
-
-            const values = getRangeValues(
-                startCol,
-                Number(startRow),
-                endCol,
-                Number(endRow)
-            );
-
-            return values.reduce((a, b) => a + b, 0);
-        }
-    );
-
-    // AVERAGE
-    expression = expression.replace(
-        /AVERAGE\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/gi,
-        function (_, startCol, startRow, endCol, endRow) {
-
-            const values = getRangeValues(
-                startCol,
-                Number(startRow),
-                endCol,
-                Number(endRow)
-            );
-
-            if (values.length === 0) return 0;
-
-            return values.reduce((a, b) => a + b, 0) / values.length;
-        }
-    );
-
-    // MIN
-    expression = expression.replace(
-        /MIN\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/gi,
-        function (_, startCol, startRow, endCol, endRow) {
-
-            const values = getRangeValues(
-                startCol,
-                Number(startRow),
-                endCol,
-                Number(endRow)
-            );
-
-            return values.length ? Math.min(...values) : 0;
-        }
-    );
-
-    // MAX
-    expression = expression.replace(
-        /MAX\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/gi,
-        function (_, startCol, startRow, endCol, endRow) {
-
-            const values = getRangeValues(
-                startCol,
-                Number(startRow),
-                endCol,
-                Number(endRow)
-            );
-
-            return values.length ? Math.max(...values) : 0;
-        }
-    );
-
-    // COUNT
-    expression = expression.replace(
-        /COUNT\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/gi,
-        function (_, startCol, startRow, endCol, endRow) {
-
-            const values = getRangeValues(
-                startCol,
-                Number(startRow),
-                endCol,
-                Number(endRow)
-            );
-
-            return values.length;
-        }
-    );
-
-    // Replace cell references
-    expression = expression.replace(
-        /\b([A-Z]+)(\d+)\b/gi,
-        function (_, col, row) {
-
-            return getCellNumber(col, Number(row));
-        }
-    );
-
-    // Only allow mathematical characters
-    if (!/^[0-9+\-*/().\s]+$/.test(expression)) {
-        return "#ERROR";
-    }
-
-    try {
-
-        const result = Function(
-            '"use strict"; return (' + expression + ')'
-        )();
-
-        if (!Number.isFinite(result)) {
-            return "#ERROR";
-        }
-
-        return result;
-
-    } catch (error) {
-
-        return "#ERROR";
-    }
-}
-
-// --------------------------------
-// Get Cell Number
-// --------------------------------
-function getCellNumber(colName, rowNumber) {
-
-    const col = columnIndex(colName);
-
-    const row = rowNumber - 1;
-
-    if (
-        row < 0 ||
-        row >= sheets[currentSheet].data.length ||
-        col < 0 ||
-        col >= sheets[currentSheet].columns
-    ) {
-        return 0;
-    }
-
-    const value = sheets[currentSheet].data[row][col];
-
-    if (typeof value !== "string") {
-        return Number(value) || 0;
-    }
-
-    if (value.startsWith("=")) {
-
-        const result = calculateFormula(value);
-
-        return Number(result) || 0;
-    }
-
-    const number = Number(value);
-
-    return Number.isFinite(number) ? number : 0;
-}
-
-// --------------------------------
-// Column letter to index
-// --------------------------------
-function columnIndex(name) {
-
-    name = name.toUpperCase();
-
-    let result = 0;
-
-    for (let i = 0; i < name.length; i++) {
-
-        result =
-            result * 26 +
-            (name.charCodeAt(i) - 64);
-    }
-
-    return result - 1;
-}
-
-// --------------------------------
-// Get Range Values
-// --------------------------------
-function getRangeValues(
-    startCol,
-    startRow,
-    endCol,
-    endRow
-) {
-
-    const values = [];
-
-    const startC = columnIndex(startCol);
-    const endC = columnIndex(endCol);
-
-    for (let r = startRow; r <= endRow; r++) {
-
-        for (let c = startC; c <= endC; c++) {
-
-            const value =
-                getCellNumber(
-                    columnName(c),
-                    r
-                );
-
-            if (Number.isFinite(value)) {
-                values.push(value);
-            }
-        }
-    }
-
-    return values;
-}
-
-// --------------------------------
-// Recalculate Sheet
-// --------------------------------
-function recalculateSheet() {
+// ------------------------------------------
+// Calculate Balance
+// ------------------------------------------
+function calculateBalances() {
 
     const sheet = sheets[currentSheet];
 
+    let balance = 0;
+
+    for (let r = 1; r < sheet.data.length; r++) {
+
+        const jama =
+            parseFloat(sheet.data[r][3]) || 0;
+
+        const kharch =
+            parseFloat(sheet.data[r][4]) || 0;
+
+        balance =
+            balance + jama - kharch;
+
+        sheet.data[r][5] =
+            balance === 0
+                ? ""
+                : balance.toFixed(2);
+    }
+
+    renderBalanceCells();
+}
+
+// ------------------------------------------
+// Update Balance Cells
+// ------------------------------------------
+function renderBalanceCells() {
+
     const cells =
-        document.querySelectorAll("#tableBody td");
+        document.querySelectorAll(
+            '#tableBody td[data-col="5"]'
+        );
 
     cells.forEach(cell => {
 
-        const row = Number(cell.dataset.row);
-        const col = Number(cell.dataset.col);
+        const row =
+            Number(cell.dataset.row);
 
-        const original =
-            sheet.data[row][col];
-
-        if (
-            typeof original === "string" &&
-            original.startsWith("=")
-        ) {
-
-            const result =
-                calculateFormula(original);
-
-            cell.textContent = result;
-        }
+        cell.textContent =
+            sheets[currentSheet].data[row][5] || "";
     });
 }
 
-// --------------------------------
+// ------------------------------------------
+// Summary
+// ------------------------------------------
+function updateSummary() {
+
+    const sheet = sheets[currentSheet];
+
+    let totalJama = 0;
+    let totalKharch = 0;
+
+    for (let r = 1; r < sheet.data.length; r++) {
+
+        totalJama +=
+            parseFloat(sheet.data[r][3]) || 0;
+
+        totalKharch +=
+            parseFloat(sheet.data[r][4]) || 0;
+    }
+
+    const balance =
+        totalJama - totalKharch;
+
+    let summary =
+        document.getElementById("hisabSummary");
+
+    if (!summary) {
+
+        summary =
+            document.createElement("div");
+
+        summary.id =
+            "hisabSummary";
+
+        document.body.insertBefore(
+            summary,
+            document.getElementById("table-container") ||
+            document.querySelector(".table-container")
+        );
+    }
+
+    summary.innerHTML = `
+        <div>
+            <strong>💰 कुल जमा</strong>
+            <span>₹${totalJama.toFixed(2)}</span>
+        </div>
+
+        <div>
+            <strong>💸 कुल खर्च</strong>
+            <span>₹${totalKharch.toFixed(2)}</span>
+        </div>
+
+        <div>
+            <strong>💵 बाकी</strong>
+            <span>₹${balance.toFixed(2)}</span>
+        </div>
+    `;
+}
+
+// ------------------------------------------
 // Add Row
-// --------------------------------
+// ------------------------------------------
 function addRow() {
 
     const sheet = sheets[currentSheet];
@@ -498,38 +407,43 @@ function addRow() {
 
     saveToLocalStorage();
 
-    showMessage("New row added");
+    showMessage("नई Row जोड़ दी गई");
 }
 
-// --------------------------------
+// ------------------------------------------
 // Delete Row
-// --------------------------------
+// ------------------------------------------
 function deleteRow() {
 
     const sheet = sheets[currentSheet];
 
-    if (sheet.data.length <= 1) {
-        showMessage("कम से कम 1 row रहना चाहिए");
+    if (sheet.data.length <= 2) {
+
+        showMessage("कम से कम 1 हिसाब रखें");
+
         return;
     }
 
     sheet.data.pop();
 
+    calculateBalances();
+
     renderSpreadsheet();
 
     saveToLocalStorage();
 
-    showMessage("Last row deleted");
+    showMessage("Last Row हटाई गई");
 }
 
-// --------------------------------
+// ------------------------------------------
 // Add Column
-// --------------------------------
+// ------------------------------------------
 function addColumn() {
 
     const sheet = sheets[currentSheet];
 
     for (let r = 0; r < sheet.data.length; r++) {
+
         sheet.data[r].push("");
     }
 
@@ -539,22 +453,27 @@ function addColumn() {
 
     saveToLocalStorage();
 
-    showMessage("New column added");
+    showMessage("नया Column जोड़ा गया");
 }
 
-// --------------------------------
+// ------------------------------------------
 // Delete Column
-// --------------------------------
+// ------------------------------------------
 function deleteColumn() {
 
     const sheet = sheets[currentSheet];
 
     if (sheet.columns <= 1) {
-        showMessage("कम से कम 1 column रहना चाहिए");
+
+        showMessage(
+            "कम से कम 1 Column रहना चाहिए"
+        );
+
         return;
     }
 
     for (let r = 0; r < sheet.data.length; r++) {
+
         sheet.data[r].pop();
     }
 
@@ -564,12 +483,12 @@ function deleteColumn() {
 
     saveToLocalStorage();
 
-    showMessage("Last column deleted");
+    showMessage("Last Column हटाया गया");
 }
 
-// --------------------------------
-// New Spreadsheet
-// --------------------------------
+// ------------------------------------------
+// New Sheet
+// ------------------------------------------
 function newSheet() {
 
     const name =
@@ -577,22 +496,26 @@ function newSheet() {
 
     if (!name) return;
 
-    sheets.push(createBlankSheet(name));
+    sheets.push(
+        createBlankSheet(name)
+    );
 
-    currentSheet = sheets.length - 1;
+    currentSheet =
+        sheets.length - 1;
 
     renderSheets();
-
     renderSpreadsheet();
 
     saveToLocalStorage();
 
-    showMessage("New हिसाब बनाया गया");
+    showMessage(
+        "नया हिसाब बनाया गया"
+    );
 }
 
-// --------------------------------
+// ------------------------------------------
 // Add Sheet
-// --------------------------------
+// ------------------------------------------
 function addSheet() {
 
     const name =
@@ -600,20 +523,26 @@ function addSheet() {
 
     if (!name) return;
 
-    sheets.push(createBlankSheet(name));
+    sheets.push(
+        createBlankSheet(name)
+    );
 
-    currentSheet = sheets.length - 1;
+    currentSheet =
+        sheets.length - 1;
 
     renderSheets();
-
     renderSpreadsheet();
 
     saveToLocalStorage();
+
+    showMessage(
+        "नई Sheet बनाई गई"
+    );
 }
 
-// --------------------------------
-// Render Sheet Tabs
-// --------------------------------
+// ------------------------------------------
+// Sheet Tabs
+// ------------------------------------------
 function renderSheets() {
 
     const container =
@@ -621,43 +550,54 @@ function renderSheets() {
 
     container.innerHTML = "";
 
-    sheets.forEach((sheet, index) => {
+    sheets.forEach(
+        (sheet, index) => {
 
-        const tab =
-            document.createElement("button");
+            const tab =
+                document.createElement("button");
 
-        tab.className =
-            "sheet-tab" +
-            (index === currentSheet ? " active" : "");
+            tab.className =
+                "sheet-tab" +
+                (
+                    index === currentSheet
+                        ? " active"
+                        : ""
+                );
 
-        tab.textContent = sheet.name;
+            tab.textContent =
+                sheet.name;
 
-        tab.onclick = function () {
+            tab.onclick = function () {
 
-            currentSheet = index;
+                currentSheet = index;
 
-            renderSheets();
-            renderSpreadsheet();
+                renderSheets();
+                renderSpreadsheet();
 
-        };
+            };
 
-        container.appendChild(tab);
-    });
+            container.appendChild(tab);
+        }
+    );
 }
 
-// --------------------------------
+// ------------------------------------------
 // Save
-// --------------------------------
+// ------------------------------------------
 function saveData() {
+
+    calculateBalances();
 
     saveToLocalStorage();
 
-    showMessage("💾 हिसाब Save हो गया");
+    showMessage(
+        "💾 हिसाब सुरक्षित हो गया"
+    );
 }
 
-// --------------------------------
+// ------------------------------------------
 // Local Storage
-// --------------------------------
+// ------------------------------------------
 function saveToLocalStorage() {
 
     localStorage.setItem(
@@ -666,9 +606,9 @@ function saveToLocalStorage() {
     );
 }
 
-// --------------------------------
+// ------------------------------------------
 // Message
-// --------------------------------
+// ------------------------------------------
 function showMessage(text) {
 
     const message =
@@ -678,16 +618,17 @@ function showMessage(text) {
 
     message.style.display = "block";
 
-    setTimeout(() => {
-
-        message.style.display = "none";
-
-    }, 1800);
+    setTimeout(
+        () => {
+            message.style.display = "none";
+        },
+        1800
+    );
 }
 
-// --------------------------------
+// ------------------------------------------
 // Start
-// --------------------------------
+// ------------------------------------------
 document.addEventListener(
     "DOMContentLoaded",
     initializeApp
