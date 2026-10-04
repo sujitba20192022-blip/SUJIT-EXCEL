@@ -1,57 +1,292 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisab Kitab</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>हिसाब-किताब</title>
 
-    <link rel="stylesheet" href="style.css">
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f6f4;
+    color: #1d2a24;
+}
+
+/* Top Bar */
+.topbar {
+    background: #087f5b;
+    color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.topbar span {
+    font-size: 13px;
+}
+
+/* Main */
+.container {
+    max-width: 700px;
+    margin: auto;
+    padding: 15px;
+}
+
+/* Summary */
+.summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card-title {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.card-value {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.in-card {
+    border-top: 4px solid #087f5b;
+}
+
+.out-card {
+    border-top: 4px solid #d62828;
+}
+
+.balance-card {
+    border-top: 4px solid #e09f00;
+}
+
+/* Section */
+.section {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.section h2 {
+    margin: 0 0 15px;
+    font-size: 19px;
+}
+
+/* Type buttons */
+.type-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.type-btn {
+    border: 2px solid #ddd;
+    background: white;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.type-btn.active.in {
+    background: #087f5b;
+    color: white;
+    border-color: #087f5b;
+}
+
+.type-btn.active.out {
+    background: #d62828;
+    color: white;
+    border-color: #d62828;
+}
+
+/* Form */
+label {
+    display: block;
+    font-weight: bold;
+    margin: 10px 0 6px;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ccc;
+    border-radius: 9px;
+    font-size: 16px;
+    outline: none;
+}
+
+input:focus,
+textarea:focus {
+    border-color: #087f5b;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.add-btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 14px;
+    background: #087f5b;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-btn:active {
+    transform: scale(0.98);
+}
+
+/* Transaction */
+.transaction {
+    border-left: 5px solid #087f5b;
+    background: #f8faf9;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.transaction.out {
+    border-left-color: #d62828;
+}
+
+.transaction-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.transaction-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.amount-in {
+    color: #087f5b;
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.amount-out {
+    color: #d62828;
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.transaction-info {
+    font-size: 13px;
+    color: #555;
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+.delete-btn {
+    margin-top: 9px;
+    border: none;
+    background: #ffe5e5;
+    color: #c1121f;
+    padding: 7px 11px;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.empty {
+    text-align: center;
+    color: #777;
+    padding: 25px 10px;
+}
+
+.clear-btn {
+    width: 100%;
+    padding: 12px;
+    background: #fff;
+    color: #c1121f;
+    border: 1px solid #c1121f;
+    border-radius: 9px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+/* Mobile */
+@media (max-width: 500px) {
+    .summary {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        padding: 13px;
+    }
+
+    .card-value {
+        font-size: 20px;
+    }
+
+    .topbar h1 {
+        font-size: 20px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<header class="topbar">
-    <h1>Hisab Kitab</h1>
-    <div class="top-buttons">
-        <button onclick="newSheet()">＋ New</button>
-        <button onclick="saveData()">💾 Save</button>
-    </div>
-</header>
-
-<div class="toolbar">
-    <button onclick="addRow()">＋ Row</button>
-    <button onclick="deleteRow()">− Row</button>
-    <button onclick="addColumn()">＋ Column</button>
-    <button onclick="deleteColumn()">− Column</button>
+<div class="topbar">
+    <h1>💰 हिसाब-किताब</h1>
+    <span>मेरा पैसा</span>
 </div>
 
-<div class="formula-area">
-    <span id="cellName">A1</span>
-    <input
-        type="text"
-        id="formulaBar"
-        placeholder="Value या Formula लिखें, जैसे =SUM(A1:A10)"
-        oninput="formulaChanged()"
-    >
-</div>
+<div class="container">
 
-<div class="table-container">
-    <table id="spreadsheet">
-        <thead>
-            <tr id="headerRow"></tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
-</div>
+    <!-- Summary -->
+    <div class="summary">
 
-<div class="sheet-area">
-    <div id="sheetTabs"></div>
-    <button class="add-sheet" onclick="addSheet()">＋ Sheet</button>
-</div>
+        <div class="card in-card">
+            <div class="card-title">कुल पैसा आया</div>
+            <div class="card-value" id="totalIn">₹0</div>
+        </div>
 
-<div id="message"></div>
+        <div class="card out-card">
+            <div class="card-title">कुल पैसा भेजा</div>
+            <div class="card-value" id="totalOut">₹0</div>
+        </div>
 
-<script src="app.js"></script>
-
-</body>
-  </html>
+        <div class="card balance-card">
+            <div class="card-title">बाकी बैल
